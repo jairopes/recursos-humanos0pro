@@ -68,19 +68,26 @@ export const Select: React.FC<{
   options: { value: string; label: string }[];
   placeholder?: string;
   className?: string;
-}> = ({ label, value, onChange, options, placeholder, className = "" }) => (
+  required?: boolean;
+}> = ({ label, value, onChange, options, placeholder, className = "", required }) => (
   <div className={`flex flex-col gap-1.5 ${className}`}>
     {label && <label className="text-sm font-medium text-slate-400 px-1">{label}</label>}
-    <select
-      value={value}
-      onChange={onChange}
-      className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
-    >
-      <option value="" disabled>{placeholder || 'Selecione...'}</option>
-      {options.map(opt => (
-        <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>
-      ))}
-    </select>
+    <div className="relative">
+      <select
+        value={value}
+        onChange={onChange}
+        required={required}
+        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+      >
+        <option value="" disabled>{placeholder || 'Selecione...'}</option>
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>
+        ))}
+      </select>
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+      </div>
+    </div>
   </div>
 );
 
