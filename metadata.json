@@ -1,0 +1,5 @@
+{
+  "name": "Recursos Humanos Pro",
+  "description": "Uma plataforma completa para gestão de RH, controle de funcionários, folha de pagamento e lançamentos mensais com persistência local e interface moderna.",
+  "requestFramePermissions": []
+}
