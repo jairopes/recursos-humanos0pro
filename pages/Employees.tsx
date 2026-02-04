@@ -16,7 +16,8 @@ import {
   Save,
   Coffee,
   AlertTriangle,
-  Mail
+  FileText,
+  Heart
 } from 'lucide-react';
 
 const formatCPF = (value: string) => {
@@ -108,7 +109,6 @@ const Employees: React.FC = () => {
     
     setCpfError(false);
     setIsSaving(true);
-    console.log('Iniciando persistência do funcionário:', form);
 
     try {
       if (editingEmployee) {
@@ -116,14 +116,13 @@ const Employees: React.FC = () => {
       } else {
         await api.createEmployee(form);
       }
-      console.log('Persistência concluída com sucesso.');
       setIsModalOpen(false);
       setEditingEmployee(null);
       setForm(initialForm);
       await loadEmployees();
     } catch (err: any) {
       console.error('Erro detalhado no handleSubmit:', err);
-      alert(`Erro ao salvar funcionário: ${err.message || 'Erro desconhecido'}. Verifique o console para mais detalhes.`);
+      alert(`Erro ao salvar funcionário: ${err.message || 'Erro desconhecido'}`);
     } finally {
       setIsSaving(false);
     }
@@ -136,23 +135,23 @@ const Employees: React.FC = () => {
       name: emp.name, 
       email: emp.email || '',
       role: emp.role || '',
-      hireDate: emp.hireDate, 
+      hireDate: emp.hireDate || '', 
       birthDate: emp.birthDate || '',
-      company: emp.company, 
-      address: emp.address,
+      company: emp.company || '', 
+      address: emp.address || '',
       phone: emp.phone || '',
-      city: emp.city, 
-      state: emp.state, 
+      city: emp.city || '', 
+      state: emp.state || '', 
       cep: emp.cep || '',
       fatherName: emp.fatherName || '', 
       motherName: emp.motherName || '',
-      cpf: emp.cpf, 
+      cpf: emp.cpf || '', 
       rg: emp.rg || '', 
       ctps: emp.ctps || '', 
       pis: emp.pis || '', 
       voterId: emp.voterId || '',
-      baseSalary: emp.baseSalary, 
-      functionBonus: emp.functionBonus,
+      baseSalary: emp.baseSalary || 0, 
+      functionBonus: emp.functionBonus || 0,
       defaultMealVoucher: emp.defaultMealVoucher || 0,
       defaultFoodVoucher: emp.defaultFoodVoucher || 0
     });
@@ -175,7 +174,7 @@ const Employees: React.FC = () => {
   );
 
   const SectionHeader = ({ icon: Icon, title }: { icon: any, title: string }) => (
-    <div className="flex items-center gap-2 mb-4 mt-6 first:mt-0">
+    <div className="flex items-center gap-2 mb-4 mt-8 first:mt-0">
       <div className="p-1.5 bg-slate-800 rounded-lg">
         <Icon className="w-4 h-4 text-indigo-400" />
       </div>
@@ -261,7 +260,7 @@ const Employees: React.FC = () => {
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingEmployee ? "Editar Funcionário" : "Cadastro de Funcionários"}>
-        <form onSubmit={handleSubmit} className="space-y-8 pb-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pb-4">
           
           <div>
             <SectionHeader icon={Briefcase} title="Dados do Contrato" />
@@ -290,9 +289,9 @@ const Employees: React.FC = () => {
               <div className="md:col-span-2">
                 <Input label="NOME COMPLETO" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Digite o nome completo" required />
               </div>
-              <div className="md:col-span-2">
-                <Input label="E-MAIL CORPORATIVO (PARA LOGIN)" type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="exemplo@empresa.com" required />
-              </div>
+              <Input label="E-MAIL CORPORATIVO (PARA LOGIN)" type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="exemplo@empresa.com" required />
+              <Input label="DATA DE NASCIMENTO" type="date" value={form.birthDate} onChange={e => setForm({...form, birthDate: e.target.value})} required />
+              
               <div className="relative">
                 <Input 
                   label="NÚMERO CPF" 
@@ -321,6 +320,23 @@ const Employees: React.FC = () => {
           </div>
 
           <div>
+            <SectionHeader icon={FileText} title="Documentação Profissional" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input label="CARTEIRA TRABALHO (CTPS)" value={form.ctps} onChange={e => setForm({...form, ctps: e.target.value})} placeholder="Número e Série" />
+              <Input label="PIS" value={form.pis} onChange={e => setForm({...form, pis: e.target.value})} placeholder="000.00000.00.0" />
+              <Input label="TÍTULO DE ELEITOR" value={form.voterId} onChange={e => setForm({...form, voterId: e.target.value})} placeholder="0000 0000 0000" />
+            </div>
+          </div>
+
+          <div>
+            <SectionHeader icon={Heart} title="Filiação" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="NOME DO PAI" value={form.fatherName} onChange={e => setForm({...form, fatherName: e.target.value})} placeholder="Nome completo do pai" />
+              <Input label="NOME DA MÃE" value={form.motherName} onChange={e => setForm({...form, motherName: e.target.value})} placeholder="Nome completo da mãe" />
+            </div>
+          </div>
+
+          <div>
             <SectionHeader icon={DollarSign} title="Remuneração Mensal" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="SALÁRIO BASE (RS)" type="number" step="0.01" value={form.baseSalary} onChange={e => setForm({...form, baseSalary: Number(e.target.value)})} required />
@@ -329,7 +345,7 @@ const Employees: React.FC = () => {
           </div>
 
           <div>
-            <SectionHeader icon={Coffee} title="Benefícios Padrão (Mensais)" />
+            <SectionHeader icon={Coffee} title="Benefícios Padrão" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="VALE REFEIÇÃO PADRÃO (RS)" type="number" step="0.01" value={form.defaultMealVoucher} onChange={e => setForm({...form, defaultMealVoucher: Number(e.target.value)})} />
               <Input label="VALE ALIMENTAÇÃO PADRÃO (RS)" type="number" step="0.01" value={form.defaultFoodVoucher} onChange={e => setForm({...form, defaultFoodVoucher: Number(e.target.value)})} />
@@ -345,6 +361,7 @@ const Employees: React.FC = () => {
               <Input label="CIDADE" value={form.city} onChange={e => setForm({...form, city: e.target.value})} required />
               <Input label="UF" value={form.state} onChange={e => setForm({...form, state: e.target.value})} required />
               <Input label="CEP" value={form.cep} onChange={e => setForm({...form, cep: e.target.value})} />
+              <Input label="TELEFONE" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} placeholder="(00) 00000-0000" />
             </div>
           </div>
           
