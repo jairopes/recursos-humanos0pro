@@ -17,7 +17,8 @@ import {
   Coffee,
   AlertTriangle,
   FileText,
-  Heart
+  Heart,
+  StickyNote
 } from 'lucide-react';
 
 const formatCPF = (value: string) => {
@@ -61,6 +62,7 @@ const Employees: React.FC = () => {
     email: '',
     role: '',
     hireDate: '', 
+    exitDate: '',
     birthDate: '',
     company: '', 
     address: '', 
@@ -78,7 +80,8 @@ const Employees: React.FC = () => {
     baseSalary: 0, 
     functionBonus: 0,
     defaultMealVoucher: 0,
-    defaultFoodVoucher: 0
+    defaultFoodVoucher: 0,
+    notes: ''
   };
 
   const [form, setForm] = useState(initialForm);
@@ -136,6 +139,7 @@ const Employees: React.FC = () => {
       email: emp.email || '',
       role: emp.role || '',
       hireDate: emp.hireDate || '', 
+      exitDate: emp.exitDate || '',
       birthDate: emp.birthDate || '',
       company: emp.company || '', 
       address: emp.address || '',
@@ -153,7 +157,8 @@ const Employees: React.FC = () => {
       baseSalary: emp.baseSalary || 0, 
       functionBonus: emp.functionBonus || 0,
       defaultMealVoucher: emp.defaultMealVoucher || 0,
-      defaultFoodVoucher: emp.defaultFoodVoucher || 0
+      defaultFoodVoucher: emp.defaultFoodVoucher || 0,
+      notes: emp.notes || ''
     });
     setIsModalOpen(true);
   };
@@ -252,7 +257,9 @@ const Employees: React.FC = () => {
                 <div className="text-[10px] text-slate-500 uppercase font-bold">
                   VR: R$ {emp.defaultMealVoucher} | VA: R$ {emp.defaultFoodVoucher}
                 </div>
-                <Badge variant="success">Ativo</Badge>
+                <Badge variant={emp.exitDate ? 'warning' : 'success'}>
+                  {emp.exitDate ? 'Desligado' : 'Ativo'}
+                </Badge>
               </div>
             </Card>
           ))
@@ -276,7 +283,10 @@ const Employees: React.FC = () => {
                 placeholder="Selecione..."
                 required
               />
-              <Input label="DATA DE ADMISSÃO" type="date" value={form.hireDate} onChange={e => setForm({...form, hireDate: e.target.value})} required />
+              <div className="grid grid-cols-2 gap-2">
+                <Input label="DATA ADMISSÃO" type="date" value={form.hireDate} onChange={e => setForm({...form, hireDate: e.target.value})} required />
+                <Input label="DATA SAÍDA" type="date" value={form.exitDate} onChange={e => setForm({...form, exitDate: e.target.value})} />
+              </div>
               <div className="md:col-span-2">
                 <Input label="FUNÇÃO / CARGO" value={form.role} onChange={e => setForm({...form, role: e.target.value})} placeholder="Ex: Analista Financeiro" required />
               </div>
@@ -362,6 +372,18 @@ const Employees: React.FC = () => {
               <Input label="UF" value={form.state} onChange={e => setForm({...form, state: e.target.value})} required />
               <Input label="CEP" value={form.cep} onChange={e => setForm({...form, cep: e.target.value})} />
               <Input label="TELEFONE" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} placeholder="(00) 00000-0000" />
+            </div>
+          </div>
+
+          <div>
+            <SectionHeader icon={StickyNote} title="Observações Gerais" />
+            <div className="flex flex-col gap-1.5">
+              <textarea 
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all min-h-[120px] placeholder:text-slate-600"
+                value={form.notes}
+                onChange={e => setForm({...form, notes: e.target.value})}
+                placeholder="Insira aqui informações adicionais relevantes sobre o histórico do colaborador..."
+              />
             </div>
           </div>
           

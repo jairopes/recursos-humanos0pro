@@ -5,6 +5,7 @@ export interface Employee {
   email: string; // Novo campo para login
   role: string;
   hireDate: string;
+  exitDate?: string; // Novo campo
   birthDate: string;
   company: string;
   address: string;
@@ -23,6 +24,7 @@ export interface Employee {
   functionBonus: number;
   defaultMealVoucher: number;
   defaultFoodVoucher: number;
+  notes?: string; // Novo campo
   createdAt?: string;
 }
 
