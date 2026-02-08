@@ -56,7 +56,9 @@ const Advances: React.FC = () => {
     setIsSaving(true);
     try {
       const payload = employees.map(emp => {
-        const standard = (emp.baseSalary + emp.functionBonus) * 0.4;
+        const totalBase = emp.baseSalary + emp.functionBonus;
+        // Arredondamento para 2 casas decimais
+        const standard = Math.round((totalBase * 0.4) * 100) / 100;
         const extra = advancesState[emp.id] || 0;
         return {
           employeeId: emp.id,
@@ -66,7 +68,7 @@ const Advances: React.FC = () => {
           functionBonus: emp.functionBonus,
           standardAdvance: standard,
           otherAdvances: extra,
-          totalAdvance: standard + extra
+          totalAdvance: Math.round((standard + extra) * 100) / 100
         };
       });
       await api.saveAdvances(payload);
@@ -90,7 +92,8 @@ const Advances: React.FC = () => {
     ];
 
     const rows = employees.map(emp => {
-      const standard = (emp.baseSalary + emp.functionBonus) * 0.4;
+      const totalBase = emp.baseSalary + emp.functionBonus;
+      const standard = Math.round((totalBase * 0.4) * 100) / 100;
       const extra = advancesState[emp.id] || 0;
       return [
         emp.name,
@@ -185,7 +188,8 @@ const Advances: React.FC = () => {
             ) : (
               filteredEmployees.map(emp => {
                 const totalBase = emp.baseSalary + emp.functionBonus;
-                const standard = totalBase * 0.4;
+                // Força 2 casas decimais no cálculo
+                const standard = Math.round((totalBase * 0.4) * 100) / 100;
                 const extra = advancesState[emp.id] || 0;
                 return (
                   <tr key={emp.id} className="hover:bg-slate-800/30 transition-colors">
@@ -194,10 +198,10 @@ const Advances: React.FC = () => {
                       <div className="text-xs text-slate-500">{emp.role}</div>
                     </td>
                     <td className="px-6 py-4 text-right font-mono text-slate-300">
-                      R$ {totalBase.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {totalBase.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-bold text-indigo-400">
-                      R$ {standard.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {standard.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="px-6 py-4 max-w-[150px]">
                       <div className="relative group">
@@ -214,7 +218,7 @@ const Advances: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="text-lg font-black text-white font-mono">
-                        R$ {(standard + extra).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        R$ {(standard + extra).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     </td>
                   </tr>

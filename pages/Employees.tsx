@@ -18,8 +18,10 @@ import {
   AlertTriangle,
   FileText,
   Heart,
-  StickyNote
+  StickyNote,
+  Download
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const formatCPF = (value: string) => {
   const digits = value.replace(/\D/g, '');
@@ -99,6 +101,77 @@ const Employees: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const exportToExcel = () => {
+    if (employees.length === 0) {
+      alert("Não há funcionários para exportar.");
+      return;
+    }
+
+    const headers = [
+      "Nome Completo",
+      "E-mail",
+      "Telefone",
+      "Cargo/Função",
+      "Empresa Contratante",
+      "Data Admissão",
+      "Data Saída",
+      "CPF",
+      "RG",
+      "PIS",
+      "CTPS",
+      "Título Eleitor",
+      "Data Nascimento",
+      "Salário Base",
+      "Gratificação Função",
+      "VR Padrão",
+      "VA Padrão",
+      "Endereço",
+      "Cidade",
+      "Estado",
+      "CEP",
+      "Nome do Pai",
+      "Nome da Mãe",
+      "Observações"
+    ];
+
+    const rows = employees.map(emp => [
+      emp.name,
+      emp.email,
+      emp.phone,
+      emp.role,
+      emp.company,
+      emp.hireDate ? new Date(emp.hireDate).toLocaleDateString('pt-BR') : '',
+      emp.exitDate ? new Date(emp.exitDate).toLocaleDateString('pt-BR') : '',
+      formatCPF(emp.cpf),
+      emp.rg,
+      emp.pis,
+      emp.ctps,
+      emp.voterId,
+      emp.birthDate ? new Date(emp.birthDate).toLocaleDateString('pt-BR') : '',
+      emp.baseSalary,
+      emp.functionBonus,
+      emp.defaultMealVoucher,
+      emp.defaultFoodVoucher,
+      emp.address,
+      emp.city,
+      emp.state,
+      emp.cep,
+      emp.fatherName,
+      emp.motherName,
+      emp.notes || ''
+    ]);
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Funcionários");
+
+    // Auto-ajuste de colunas
+    const wscols = headers.map(h => ({ wch: h.length + 10 }));
+    worksheet['!cols'] = wscols;
+
+    XLSX.writeFile(workbook, `cadastro_funcionarios_rh_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -194,10 +267,16 @@ const Employees: React.FC = () => {
           <h1 className="text-3xl font-bold text-white tracking-tight">Recursos Humanos</h1>
           <p className="text-slate-400">Cadastro e Gestão de Funcionários</p>
         </div>
-        <Button onClick={() => { setEditingEmployee(null); setForm(initialForm); setCpfError(false); setIsModalOpen(true); }} className="px-6">
-          <Plus className="w-5 h-5" />
-          Novo Funcionário
-        </Button>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <Button variant="secondary" onClick={exportToExcel} disabled={employees.length === 0} className="flex-1 sm:flex-none">
+            <Download className="w-4 h-4" />
+            Exportar XLSX
+          </Button>
+          <Button onClick={() => { setEditingEmployee(null); setForm(initialForm); setCpfError(false); setIsModalOpen(true); }} className="px-6 flex-1 sm:flex-none">
+            <Plus className="w-5 h-5" />
+            Novo Funcionário
+          </Button>
+        </div>
       </div>
 
       <Card className="flex items-center gap-3 bg-slate-900/40 p-1 border-slate-800/50">
