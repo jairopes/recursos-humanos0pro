@@ -9,7 +9,8 @@ import {
   Menu, 
   X, 
   ChevronRight,
-  HandCoins
+  HandCoins,
+  TrendingUp
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -25,6 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onLog
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'employees', label: 'Funcionários', icon: Users },
+    { id: 'salary_evolution', label: 'Evolução Salarial', icon: TrendingUp },
     { id: 'payroll_config', label: 'Folha Pagamento', icon: FileText },
     { id: 'launches', label: 'Lançar Mensal', icon: CalendarClock },
     { id: 'advances', label: 'Adiantamentos', icon: HandCoins },

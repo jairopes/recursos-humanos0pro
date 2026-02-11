@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { Employee, MonthlyLaunch, Advance, HRService } from './types';
+import { Employee, MonthlyLaunch, Advance, SalaryEvolution, HRService } from './types';
 
 const SUPABASE_URL = 'https://dqhgabaqzeleazkzdrxj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable__R0MoyFcpNcmvos9YcKG0w_WhqC1G2-';
@@ -22,8 +22,18 @@ const sanitizeData = (data: any) => {
   return clean;
 };
 
+const handleSupabaseError = (error: any, context: string) => {
+  console.error(`Supabase Error [${context}]:`, error);
+  // 42P01 = undefined_table (Postgres standard)
+  if (error.code === '42P01' || error.message?.includes('cache') || error.message?.includes('not found')) {
+    const customError: any = new Error(`A tabela para ${context} não foi encontrada no banco de dados.`);
+    customError.code = 'TABLE_MISSING';
+    throw customError;
+  }
+  throw new Error(error.message || 'Erro de comunicação com o banco de dados.');
+};
+
 export const supabaseService: HRService = {
-  // --- Auth ---
   async validateLogin(email: string) {
     try {
       const { data, error } = await supabase
@@ -32,29 +42,20 @@ export const supabaseService: HRService = {
         .eq('email', email.toLowerCase().trim())
         .maybeSingle();
       
-      if (error) {
-        // Se der erro de coluna não existente ou permissão, logamos mas não travamos o app
-        console.warn('Aviso na validação de login (pode ser coluna email ausente):', error.message);
-        return null;
-      }
+      if (error) return null;
       return data as Employee | null;
     } catch (e) {
-      console.error('Erro crítico no validateLogin:', e);
       return null;
     }
   },
 
-  // --- Employees ---
   async getEmployees() {
     const { data, error } = await supabase
       .from('employees')
       .select('*')
       .order('name', { ascending: true });
     
-    if (error) {
-      console.error('Erro ao buscar funcionários:', error);
-      throw error;
-    }
+    if (error) throw error;
     return data as Employee[];
   },
 
@@ -68,17 +69,12 @@ export const supabaseService: HRService = {
       .select()
       .single();
     
-    if (error) {
-      console.error('Erro detalhado do Supabase ao criar funcionário:', error);
-      throw new Error(error.message || 'Falha na inserção do banco de dados');
-    }
+    if (error) throw new Error(error.message);
     return newEmp as Employee;
   },
 
   async updateEmployee(id, data) {
     const cleanData = sanitizeData(data);
-    if (cleanData.email) cleanData.email = cleanData.email.toLowerCase().trim();
-
     const { data: updatedEmp, error } = await supabase
       .from('employees')
       .update(cleanData)
@@ -86,26 +82,15 @@ export const supabaseService: HRService = {
       .select()
       .single();
     
-    if (error) {
-      console.error('Erro ao atualizar funcionário:', error);
-      throw error;
-    }
+    if (error) throw error;
     return updatedEmp as Employee;
   },
 
   async deleteEmployee(id) {
-    const { error } = await supabase
-      .from('employees')
-      .delete()
-      .eq('id', id);
-    
-    if (error) {
-      console.error('Erro ao deletar funcionário:', error);
-      throw error;
-    }
+    const { error } = await supabase.from('employees').delete().eq('id', id);
+    if (error) throw error;
   },
 
-  // --- Launches ---
   async getLaunches() {
     const { data, error } = await supabase
       .from('launches')
@@ -118,7 +103,6 @@ export const supabaseService: HRService = {
 
   async createLaunch(data) {
     const cleanData = sanitizeData(data);
-    
     const totalEarnings = Number(cleanData.baseSalary || 0) + 
                           Number(cleanData.functionBonus || 0) + 
                           Number(cleanData.otherEarnings || 0) + 
@@ -140,12 +124,7 @@ export const supabaseService: HRService = {
 
     const { data: newLaunch, error } = await supabase
       .from('launches')
-      .insert([{
-        ...cleanData,
-        totalEarnings,
-        totalDeductions,
-        netSalary
-      }])
+      .insert([{ ...cleanData, totalEarnings, totalDeductions, netSalary }])
       .select()
       .single();
     
@@ -154,12 +133,7 @@ export const supabaseService: HRService = {
   },
 
   async updateLaunch(id, data) {
-    const { data: current } = await supabase
-      .from('launches')
-      .select('*')
-      .eq('id', id)
-      .single();
-
+    const { data: current } = await supabase.from('launches').select('*').eq('id', id).single();
     if (!current) throw new Error('Lançamento não encontrado');
 
     const cleanData = sanitizeData(data);
@@ -189,20 +163,12 @@ export const supabaseService: HRService = {
   },
 
   async deleteLaunch(id) {
-    const { error } = await supabase
-      .from('launches')
-      .delete()
-      .eq('id', id);
-    
+    const { error } = await supabase.from('launches').delete().eq('id', id);
     if (error) throw error;
   },
 
   async getAdvancesByPeriod(period) {
-    const { data, error } = await supabase
-      .from('advances')
-      .select('*')
-      .eq('period', period);
-    
+    const { data, error } = await supabase.from('advances').select('*').eq('period', period);
     if (error) throw error;
     return data as Advance[];
   },
@@ -211,25 +177,48 @@ export const supabaseService: HRService = {
     if (newAdvances.length === 0) return;
     const period = newAdvances[0].period;
     await supabase.from('advances').delete().eq('period', period);
-
     const cleanAdvances = newAdvances.map(a => sanitizeData(a));
+    const { error } = await supabase.from('advances').insert(cleanAdvances);
+    if (error) throw error;
+  },
 
-    const { error } = await supabase
-      .from('advances')
-      .insert(cleanAdvances);
+  async getSalaryEvolutions() {
+    const { data, error } = await supabase
+      .from('salary_evolution')
+      .select('*')
+      .order('date', { ascending: false });
     
+    if (error) {
+      return handleSupabaseError(error, 'salary_evolution');
+    }
+    return data as SalaryEvolution[];
+  },
+
+  async createSalaryEvolution(data) {
+    const cleanData = sanitizeData(data);
+    
+    const { data: newEv, error } = await supabase
+      .from('salary_evolution')
+      .insert([cleanData])
+      .select();
+    
+    if (error) {
+      return handleSupabaseError(error, 'salary_evolution');
+    }
+    
+    return (newEv ? newEv[0] : null) as SalaryEvolution;
+  },
+
+  async deleteSalaryEvolution(id) {
+    const { error } = await supabase.from('salary_evolution').delete().eq('id', id);
     if (error) throw error;
   },
 
   async bulkUpdateVouchers(meal, food) {
     const { error } = await supabase
       .from('employees')
-      .update({ 
-        defaultMealVoucher: meal, 
-        defaultFoodVoucher: food 
-      })
+      .update({ defaultMealVoucher: meal, defaultFoodVoucher: food })
       .not('id', 'is', null);
-    
     if (error) throw error;
   }
 };

@@ -75,6 +75,19 @@ export interface Advance {
   createdAt?: string;
 }
 
+export interface SalaryEvolution {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  baseSalary: number;
+  functionBonus: number;
+  otherEarnings: number;
+  reason: string;
+  role: string;
+  createdAt?: string;
+}
+
 export interface HRService {
   getEmployees(): Promise<Employee[]>;
   createEmployee(data: Omit<Employee, 'id' | 'createdAt'>): Promise<Employee>;
@@ -89,6 +102,10 @@ export interface HRService {
   getAdvancesByPeriod(period: string): Promise<Advance[]>;
   saveAdvances(advances: Omit<Advance, 'id' | 'createdAt'>[]): Promise<void>;
   
+  getSalaryEvolutions(): Promise<SalaryEvolution[]>;
+  createSalaryEvolution(data: Omit<SalaryEvolution, 'id' | 'createdAt'>): Promise<SalaryEvolution>;
+  deleteSalaryEvolution(id: string): Promise<void>;
+
   bulkUpdateVouchers(meal: number, food: number): Promise<void>;
   
   // Novo método para validação de login

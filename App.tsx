@@ -6,6 +6,7 @@ import Employees from './pages/Employees';
 import PayrollConfig from './pages/PayrollConfig';
 import MonthlyLaunches from './pages/MonthlyLaunches';
 import Advances from './pages/Advances';
+import SalaryEvolution from './pages/SalaryEvolution';
 import Login from './pages/Login';
 
 const App: React.FC = () => {
@@ -58,6 +59,7 @@ const App: React.FC = () => {
       case 'payroll_config': return <PayrollConfig />;
       case 'launches': return <MonthlyLaunches />;
       case 'advances': return <Advances />;
+      case 'salary_evolution': return <SalaryEvolution />;
       default: return <Dashboard />;
     }
   };

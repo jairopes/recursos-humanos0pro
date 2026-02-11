@@ -1,9 +1,10 @@
 
-import { Employee, MonthlyLaunch, Advance, HRService } from './types';
+import { Employee, MonthlyLaunch, Advance, SalaryEvolution, HRService } from './types';
 
 const EMPLOYEES_KEY = 'rh_employees_data';
 const LAUNCHES_KEY = 'rh_launches_data';
 const ADVANCES_KEY = 'rh_advances_data';
+const EVOLUTIONS_KEY = 'rh_evolutions_data';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -151,6 +152,29 @@ export const mockService: HRService = {
     }));
     
     setStored(ADVANCES_KEY, [...filtered, ...prepared]);
+  },
+
+  async getSalaryEvolutions() {
+    await delay(400);
+    return getStored<SalaryEvolution>(EVOLUTIONS_KEY);
+  },
+
+  async createSalaryEvolution(data) {
+    await delay(600);
+    const evolutions = getStored<SalaryEvolution>(EVOLUTIONS_KEY);
+    const newEvolution: SalaryEvolution = {
+      ...data,
+      id: Math.random().toString(36).substr(2, 9),
+      createdAt: new Date().toISOString()
+    };
+    setStored(EVOLUTIONS_KEY, [newEvolution, ...evolutions]);
+    return newEvolution;
+  },
+
+  async deleteSalaryEvolution(id) {
+    await delay(400);
+    const evolutions = getStored<SalaryEvolution>(EVOLUTIONS_KEY);
+    setStored(EVOLUTIONS_KEY, evolutions.filter(e => e.id !== id));
   },
 
   async bulkUpdateVouchers(meal, food) {
