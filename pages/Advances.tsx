@@ -83,6 +83,7 @@ const Advances: React.FC = () => {
   const exportToExcel = () => {
     const headers = [
       "Funcionário", 
+      "Empresa",
       "Período", 
       "Salário Base", 
       "Acúmulo Função", 
@@ -95,20 +96,37 @@ const Advances: React.FC = () => {
       const totalBase = emp.baseSalary + emp.functionBonus;
       const standard = Math.round((totalBase * 0.4) * 100) / 100;
       const extra = advancesState[emp.id] || 0;
+      const total = Math.round((standard + extra) * 100) / 100;
+      
       return [
         emp.name,
+        emp.company || 'Não informada',
         period,
         emp.baseSalary,
         emp.functionBonus,
         standard,
         extra,
-        standard + extra
+        total
       ];
     });
 
     const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Adiantamentos");
+    
+    // Ajuste de largura das colunas para melhor visualização
+    const wscols = [
+      { wch: 30 }, // Funcionário
+      { wch: 20 }, // Empresa
+      { wch: 10 }, // Período
+      { wch: 15 }, // Salário Base
+      { wch: 15 }, // Acúmulo Função
+      { wch: 18 }, // Adiantamento (40%)
+      { wch: 15 }, // Outros Adiant.
+      { wch: 20 }, // Total Adiantamento
+    ];
+    worksheet['!cols'] = wscols;
+
     XLSX.writeFile(workbook, `adiantamentos_${period}.xlsx`);
   };
 
@@ -195,7 +213,7 @@ const Advances: React.FC = () => {
                   <tr key={emp.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-100">{emp.name}</div>
-                      <div className="text-xs text-slate-500">{emp.role}</div>
+                      <div className="text-xs text-slate-500">{emp.company} | {emp.role}</div>
                     </td>
                     <td className="px-6 py-4 text-right font-mono text-slate-300">
                       R$ {totalBase.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
