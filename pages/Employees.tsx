@@ -58,6 +58,7 @@ const Employees: React.FC = () => {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [cpfError, setCpfError] = useState(false);
+  const [activeFilterTab, setActiveFilterTab] = useState<'active' | 'archived'>('active');
 
   const initialForm = {
     name: '', 
@@ -104,8 +105,10 @@ const Employees: React.FC = () => {
   };
 
   const exportToExcel = () => {
-    if (employees.length === 0) {
-      alert("Não há funcionários para exportar.");
+    const dataToExport = filteredEmployees;
+    
+    if (dataToExport.length === 0) {
+      alert("Não há funcionários para exportar nesta visualização.");
       return;
     }
 
@@ -136,7 +139,7 @@ const Employees: React.FC = () => {
       "Observações"
     ];
 
-    const rows = employees.map(emp => [
+    const rows = dataToExport.map(emp => [
       emp.name,
       emp.email,
       emp.phone,
@@ -165,13 +168,14 @@ const Employees: React.FC = () => {
 
     const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Funcionários");
+    const fileName = activeFilterTab === 'active' ? 'funcionarios_ativos' : 'funcionarios_arquivados';
+    XLSX.utils.book_append_sheet(workbook, worksheet, activeFilterTab === 'active' ? "Ativos" : "Arquivados");
 
     // Auto-ajuste de colunas
     const wscols = headers.map(h => ({ wch: h.length + 10 }));
     worksheet['!cols'] = wscols;
 
-    XLSX.writeFile(workbook, `cadastro_funcionarios_rh_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(workbook, `${fileName}_rh_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -247,9 +251,11 @@ const Employees: React.FC = () => {
     }
   };
 
-  const filteredEmployees = employees.filter(e => 
-    e.name.toLowerCase().includes(search.toLowerCase()) || e.cpf.includes(search)
-  );
+  const filteredEmployees = employees.filter(e => {
+    const matchesSearch = e.name.toLowerCase().includes(search.toLowerCase()) || e.cpf.includes(search);
+    const matchesTab = activeFilterTab === 'active' ? !e.exitDate : !!e.exitDate;
+    return matchesSearch && matchesTab;
+  });
 
   const SectionHeader = ({ icon: Icon, title }: { icon: any, title: string }) => (
     <div className="flex items-center gap-2 mb-4 mt-8 first:mt-0">
@@ -268,7 +274,7 @@ const Employees: React.FC = () => {
           <p className="text-slate-400">Cadastro e Gestão de Funcionários</p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
-          <Button variant="secondary" onClick={exportToExcel} disabled={employees.length === 0} className="flex-1 sm:flex-none">
+          <Button variant="secondary" onClick={exportToExcel} disabled={filteredEmployees.length === 0} className="flex-1 sm:flex-none">
             <Download className="w-4 h-4" />
             Exportar XLSX
           </Button>
@@ -277,6 +283,21 @@ const Employees: React.FC = () => {
             Novo Funcionário
           </Button>
         </div>
+      </div>
+
+      <div className="flex items-center gap-1 p-1 bg-slate-900/50 border border-slate-800 rounded-xl w-fit">
+        <button 
+          onClick={() => setActiveFilterTab('active')}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeFilterTab === 'active' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
+        >
+          ATIVOS ({employees.filter(e => !e.exitDate).length})
+        </button>
+        <button 
+          onClick={() => setActiveFilterTab('archived')}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeFilterTab === 'archived' ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
+        >
+          ARQUIVADOS ({employees.filter(e => !!e.exitDate).length})
+        </button>
       </div>
 
       <Card className="flex items-center gap-3 bg-slate-900/40 p-1 border-slate-800/50">
@@ -411,7 +432,7 @@ const Employees: React.FC = () => {
           <div>
             <SectionHeader icon={FileText} title="Documentação Profissional" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input label="CARTEIRA TRABALHO (CTPS)" value={form.ctps} onChange={e => setForm({...form, ctps: e.target.value})} placeholder="Número e Série" />
+              <Input label="CTPS" value={form.ctps} onChange={e => setForm({...form, ctps: e.target.value})} placeholder="Número e Série" />
               <Input label="PIS" value={form.pis} onChange={e => setForm({...form, pis: e.target.value})} placeholder="000.00000.00.0" />
               <Input label="TÍTULO DE ELEITOR" value={form.voterId} onChange={e => setForm({...form, voterId: e.target.value})} placeholder="0000 0000 0000" />
             </div>
