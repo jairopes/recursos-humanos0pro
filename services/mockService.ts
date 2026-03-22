@@ -171,6 +171,17 @@ export const mockService: HRService = {
     return newEvolution;
   },
 
+  async updateSalaryEvolution(id, data) {
+    await delay(600);
+    const evolutions = getStored<SalaryEvolution>(EVOLUTIONS_KEY);
+    const index = evolutions.findIndex(e => e.id === id);
+    if (index === -1) throw new Error('Evolution not found');
+    
+    evolutions[index] = { ...evolutions[index], ...data };
+    setStored(EVOLUTIONS_KEY, evolutions);
+    return evolutions[index];
+  },
+
   async deleteSalaryEvolution(id) {
     await delay(400);
     const evolutions = getStored<SalaryEvolution>(EVOLUTIONS_KEY);

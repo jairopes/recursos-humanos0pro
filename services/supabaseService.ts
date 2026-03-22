@@ -209,6 +209,21 @@ export const supabaseService: HRService = {
     return (newEv ? newEv[0] : null) as SalaryEvolution;
   },
 
+  async updateSalaryEvolution(id, data) {
+    const cleanData = sanitizeData(data);
+    const { data: updatedEv, error } = await supabase
+      .from('salary_evolution')
+      .update(cleanData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      return handleSupabaseError(error, 'salary_evolution');
+    }
+    return updatedEv as SalaryEvolution;
+  },
+
   async deleteSalaryEvolution(id) {
     const { error } = await supabase.from('salary_evolution').delete().eq('id', id);
     if (error) throw error;

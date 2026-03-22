@@ -7,6 +7,7 @@ import {
   TrendingUp, 
   Plus, 
   Search, 
+  Edit2,
   Trash2, 
   Calendar, 
   DollarSign, 
@@ -28,6 +29,7 @@ const SalaryEvolution: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEvolution, setEditingEvolution] = useState<ISalaryEvolution | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [missingTable, setMissingTable] = useState(false);
 
@@ -105,10 +107,16 @@ const SalaryEvolution: React.FC = () => {
         role: form.role
       };
 
-      await api.createSalaryEvolution(payload);
+      if (editingEvolution) {
+        await api.updateSalaryEvolution(editingEvolution.id, payload);
+        alert("Sucesso! Evolução salarial atualizada.");
+      } else {
+        await api.createSalaryEvolution(payload);
+        alert("Sucesso! Evolução salarial registrada.");
+      }
       
-      alert("Sucesso! Evolução salarial registrada.");
       setIsModalOpen(false);
+      setEditingEvolution(null);
       setForm(initialForm);
       await loadData();
     } catch (err: any) {
@@ -122,6 +130,21 @@ const SalaryEvolution: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleEdit = (ev: ISalaryEvolution) => {
+    setEditingEvolution(ev);
+    setForm({
+      employeeId: ev.employeeId,
+      employeeName: ev.employeeName,
+      date: ev.date,
+      baseSalary: ev.baseSalary,
+      functionBonus: ev.functionBonus,
+      otherEarnings: ev.otherEarnings,
+      reason: ev.reason,
+      role: ev.role
+    });
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -200,7 +223,7 @@ CREATE POLICY "Acesso Total Evolucao" ON public.salary_evolution FOR ALL USING (
               Exportar
             </Button>
           )}
-          <Button onClick={() => { setForm(initialForm); setIsModalOpen(true); }} className="flex-1 sm:flex-none" disabled={missingTable}>
+          <Button onClick={() => { setEditingEvolution(null); setForm(initialForm); setIsModalOpen(true); }} className="flex-1 sm:flex-none" disabled={missingTable}>
             <Plus className="w-5 h-5" />
             Nova Evolução
           </Button>
@@ -307,7 +330,7 @@ CREATE POLICY "Acesso Total" ON public.salary_evolution FOR ALL USING (true);`}
                         <Calendar className="w-5 h-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-white text-lg truncate">{ev.employeeName}</h4>
+                        <h4 className="font-bold text-white text-[10px] leading-[20px] truncate">{ev.employeeName}</h4>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
                           <Badge variant="info">{new Date(ev.date).toLocaleDateString('pt-BR')}</Badge>
                           <span className="text-slate-400 text-xs flex items-center gap-1 font-medium bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700 truncate max-w-[200px]">
@@ -320,17 +343,22 @@ CREATE POLICY "Acesso Total" ON public.salary_evolution FOR ALL USING (true);`}
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-6 items-center lg:justify-end w-full lg:w-auto bg-slate-800/20 lg:bg-transparent p-4 lg:p-0 rounded-2xl">
-                      <div className="text-right">
-                        <span className="text-[10px] text-slate-500 uppercase block mb-1">Total Bruto</span>
-                        <div className="text-indigo-400 font-black text-lg">
-                          R$ {(Number(ev.baseSalary) + Number(ev.functionBonus) + Number(ev.otherEarnings)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      <div className="flex flex-wrap gap-3 items-center lg:justify-end w-full lg:w-auto bg-slate-800/20 lg:bg-transparent p-4 lg:p-0 rounded-2xl">
+                        <div className="text-right mr-3">
+                          <span className="text-[10px] text-slate-500 uppercase block mb-1">Total Bruto</span>
+                          <div className="text-indigo-400 font-black text-lg">
+                            R$ {(Number(ev.baseSalary) + Number(ev.functionBonus) + Number(ev.otherEarnings)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <button onClick={() => handleEdit(ev)} className="p-2 text-slate-600 hover:text-indigo-400 transition-colors rounded-lg hover:bg-indigo-500/10" title="Editar">
+                            <Edit2 className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => handleDelete(ev.id)} className="p-2 text-slate-600 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10" title="Excluir">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
                         </div>
                       </div>
-                      <button onClick={() => handleDelete(ev.id)} className="p-2 text-slate-600 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10">
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
                   </div>
                 </Card>
               ))
@@ -339,7 +367,7 @@ CREATE POLICY "Acesso Total" ON public.salary_evolution FOR ALL USING (true);`}
         </>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Registrar Evolução Salarial">
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingEvolution(null); }} title={editingEvolution ? "Editar Evolução Salarial" : "Registrar Evolução Salarial"}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select 
@@ -349,6 +377,7 @@ CREATE POLICY "Acesso Total" ON public.salary_evolution FOR ALL USING (true);`}
               options={employees.map(e => ({ value: e.id, label: e.name }))}
               placeholder="Selecione o funcionário"
               required
+              disabled={!!editingEvolution}
             />
             <Input label="DATA DA ALTERAÇÃO" type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
           </div>
@@ -384,10 +413,10 @@ CREATE POLICY "Acesso Total" ON public.salary_evolution FOR ALL USING (true);`}
           </div>
 
           <div className="pt-8 border-t border-slate-800 flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)} className="px-6">Cancelar</Button>
+            <Button variant="secondary" onClick={() => { setIsModalOpen(false); setEditingEvolution(null); }} className="px-6">Cancelar</Button>
             <Button type="submit" isLoading={isSaving} className="px-8 shadow-indigo-600/20">
               <CheckCircle2 className="w-4 h-4" />
-              Confirmar Evolução
+              {editingEvolution ? "Salvar Alterações" : "Confirmar Evolução"}
             </Button>
           </div>
         </form>

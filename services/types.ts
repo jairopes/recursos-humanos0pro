@@ -104,6 +104,7 @@ export interface HRService {
   
   getSalaryEvolutions(): Promise<SalaryEvolution[]>;
   createSalaryEvolution(data: Omit<SalaryEvolution, 'id' | 'createdAt'>): Promise<SalaryEvolution>;
+  updateSalaryEvolution(id: string, data: Partial<SalaryEvolution>): Promise<SalaryEvolution>;
   deleteSalaryEvolution(id: string): Promise<void>;
 
   bulkUpdateVouchers(meal: number, food: number): Promise<void>;

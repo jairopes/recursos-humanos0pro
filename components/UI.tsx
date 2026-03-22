@@ -69,7 +69,8 @@ export const Select: React.FC<{
   placeholder?: string;
   className?: string;
   required?: boolean;
-}> = ({ label, value, onChange, options, placeholder, className = "", required }) => (
+  disabled?: boolean;
+}> = ({ label, value, onChange, options, placeholder, className = "", required, disabled }) => (
   <div className={`flex flex-col gap-1.5 ${className}`}>
     {label && <label className="text-sm font-medium text-slate-400 px-1">{label}</label>}
     <div className="relative">
@@ -77,7 +78,8 @@ export const Select: React.FC<{
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+        disabled={disabled}
+        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <option value="" disabled>{placeholder || 'Selecione...'}</option>
         {options.map(opt => (

@@ -301,7 +301,7 @@ const Employees: React.FC = () => {
       </div>
 
       <Card className="flex items-center gap-3 bg-slate-900/40 p-1 border-slate-800/50">
-        <div className="flex items-center w-full bg-slate-800/50 rounded-xl px-3 py-1">
+        <div className="flex items-center w-full bg-slate-800/50 rounded-xl px-3 py-1 text-[11px] leading-[12px]">
           <Search className="w-5 h-5 text-slate-500" />
           <input 
             type="text" 
