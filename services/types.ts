@@ -24,6 +24,7 @@ export interface Employee {
   functionBonus: number;
   defaultMealVoucher: number;
   defaultFoodVoucher: number;
+  defaultBasicBasket: number;
   notes?: string; // Novo campo
   createdAt?: string;
 }

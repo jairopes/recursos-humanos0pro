@@ -38,6 +38,7 @@ export const mockService: HRService = {
       createdAt: new Date().toISOString(),
       defaultMealVoucher: data.defaultMealVoucher || 0,
       defaultFoodVoucher: data.defaultFoodVoucher || 0,
+      defaultBasicBasket: data.defaultBasicBasket || 0,
     };
     setStored(EMPLOYEES_KEY, [newEmployee, ...employees]);
     return newEmployee;

@@ -84,6 +84,7 @@ const Employees: React.FC = () => {
     functionBonus: 0,
     defaultMealVoucher: 0,
     defaultFoodVoucher: 0,
+    defaultBasicBasket: 0,
     notes: ''
   };
 
@@ -130,6 +131,7 @@ const Employees: React.FC = () => {
       "Gratificação Função",
       "VR Padrão",
       "VA Padrão",
+      "Cesta Básica Padrão",
       "Endereço",
       "Cidade",
       "Estado",
@@ -157,6 +159,7 @@ const Employees: React.FC = () => {
       emp.functionBonus,
       emp.defaultMealVoucher,
       emp.defaultFoodVoucher,
+      emp.defaultBasicBasket,
       emp.address,
       emp.city,
       emp.state,
@@ -235,6 +238,7 @@ const Employees: React.FC = () => {
       functionBonus: emp.functionBonus || 0,
       defaultMealVoucher: emp.defaultMealVoucher || 0,
       defaultFoodVoucher: emp.defaultFoodVoucher || 0,
+      defaultBasicBasket: emp.defaultBasicBasket || 0,
       notes: emp.notes || ''
     });
     setIsModalOpen(true);
@@ -355,7 +359,7 @@ const Employees: React.FC = () => {
 
               <div className="flex items-center justify-between pt-4 border-t border-slate-800">
                 <div className="text-[10px] text-slate-500 uppercase font-bold">
-                  VR: R$ {emp.defaultMealVoucher} | VA: R$ {emp.defaultFoodVoucher}
+                  VR: R$ {emp.defaultMealVoucher} | VA: R$ {emp.defaultFoodVoucher} | CESTA: R$ {emp.defaultBasicBasket}
                 </div>
                 <Badge variant={emp.exitDate ? 'warning' : 'success'}>
                   {emp.exitDate ? 'Desligado' : 'Ativo'}
@@ -456,9 +460,10 @@ const Employees: React.FC = () => {
 
           <div>
             <SectionHeader icon={Coffee} title="Benefícios Padrão" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input label="VALE REFEIÇÃO PADRÃO (RS)" type="number" step="0.01" value={form.defaultMealVoucher} onChange={e => setForm({...form, defaultMealVoucher: Number(e.target.value)})} />
               <Input label="VALE ALIMENTAÇÃO PADRÃO (RS)" type="number" step="0.01" value={form.defaultFoodVoucher} onChange={e => setForm({...form, defaultFoodVoucher: Number(e.target.value)})} />
+              <Input label="CESTA BÁSICA PADRÃO (RS)" type="number" step="0.01" value={form.defaultBasicBasket} onChange={e => setForm({...form, defaultBasicBasket: Number(e.target.value)})} />
             </div>
           </div>
 

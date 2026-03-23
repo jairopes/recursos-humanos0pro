@@ -82,7 +82,7 @@ export const supabaseService: HRService = {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) throw new Error(error.message);
     return updatedEmp as Employee;
   },
 
@@ -232,7 +232,10 @@ export const supabaseService: HRService = {
   async bulkUpdateVouchers(meal, food) {
     const { error } = await supabase
       .from('employees')
-      .update({ defaultMealVoucher: meal, defaultFoodVoucher: food })
+      .update({ 
+        defaultMealVoucher: meal, 
+        defaultFoodVoucher: food 
+      })
       .not('id', 'is', null);
     if (error) throw error;
   }

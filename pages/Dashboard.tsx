@@ -36,7 +36,8 @@ const Dashboard: React.FC = () => {
 
   const [bulkVoucherForm, setBulkVoucherForm] = useState({
     meal: 0,
-    food: 0
+    food: 0,
+    basicBasket: 0
   });
 
   useEffect(() => {
@@ -73,7 +74,7 @@ const Dashboard: React.FC = () => {
         functionBonus: emp.functionBonus,
         otherEarnings: quickLaunchForm.otherEarnings,
         premiumAmount: quickLaunchForm.premiumAmount,
-        basicBasket: 0,
+        basicBasket: emp.defaultBasicBasket || 0,
         extraHours100: 0,
         extraHours70: 0,
         extraHours50: 0,
@@ -271,9 +272,10 @@ const Dashboard: React.FC = () => {
             <Calculator className="w-5 h-5 text-amber-400 shrink-0" />
             <p className="text-xs text-amber-200">Esta ação atualizará o valor padrão de VR/VA de TODOS os {employees.length} funcionários cadastrados.</p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input label="Novo Vale Refeição (R$)" type="number" step="0.01" value={bulkVoucherForm.meal} onChange={e => setBulkVoucherForm({...bulkVoucherForm, meal: Number(e.target.value)})} />
             <Input label="Novo Vale Alimentação (R$)" type="number" step="0.01" value={bulkVoucherForm.food} onChange={e => setBulkVoucherForm({...bulkVoucherForm, food: Number(e.target.value)})} />
+            <Input label="Nova Cesta Básica (R$)" type="number" step="0.01" value={bulkVoucherForm.basicBasket} onChange={e => setBulkVoucherForm({...bulkVoucherForm, basicBasket: Number(e.target.value)})} />
           </div>
           <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
              <Button variant="secondary" onClick={() => setIsBulkUpdateOpen(false)}>Cancelar</Button>

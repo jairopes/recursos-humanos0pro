@@ -330,7 +330,7 @@ CREATE POLICY "Acesso Total" ON public.salary_evolution FOR ALL USING (true);`}
                         <Calendar className="w-5 h-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-white text-[10px] leading-[20px] truncate">{ev.employeeName}</h4>
+                        <h4 className="font-bold text-white text-[12px] leading-[18px] truncate">{ev.employeeName}</h4>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
                           <Badge variant="info">{new Date(ev.date).toLocaleDateString('pt-BR')}</Badge>
                           <span className="text-slate-400 text-xs flex items-center gap-1 font-medium bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700 truncate max-w-[200px]">
@@ -346,11 +346,11 @@ CREATE POLICY "Acesso Total" ON public.salary_evolution FOR ALL USING (true);`}
                       <div className="flex flex-wrap gap-3 items-center lg:justify-end w-full lg:w-auto bg-slate-800/20 lg:bg-transparent p-4 lg:p-0 rounded-2xl">
                         <div className="text-right mr-3">
                           <span className="text-[10px] text-slate-500 uppercase block mb-1">Total Bruto</span>
-                          <div className="text-indigo-400 font-black text-lg">
+                          <div className="text-indigo-400 font-black text-[11px]">
                             R$ {(Number(ev.baseSalary) + Number(ev.functionBonus) + Number(ev.otherEarnings)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </div>
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 text-[12px]">
                           <button onClick={() => handleEdit(ev)} className="p-2 text-slate-600 hover:text-indigo-400 transition-colors rounded-lg hover:bg-indigo-500/10" title="Editar">
                             <Edit2 className="w-5 h-5" />
                           </button>

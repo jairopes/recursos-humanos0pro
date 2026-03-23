@@ -21,7 +21,16 @@ const MonthlyLaunches: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Filtros de Período (Lista)
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Filtros de Período (Exportação)
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
 
   const initialForm = {
     employeeId: '',
@@ -72,8 +81,19 @@ const MonthlyLaunches: React.FC = () => {
   };
 
   const exportToExcel = () => {
-    if (launches.length === 0) {
-      alert("Não há lançamentos para exportar.");
+    const filteredForExport = launches.filter(l => {
+      if (!exportStartDate && !exportEndDate) return true;
+      const launchDate = new Date(l.closingDate);
+      const start = exportStartDate ? new Date(exportStartDate) : null;
+      const end = exportEndDate ? new Date(exportEndDate) : null;
+      
+      if (start && launchDate < start) return false;
+      if (end && launchDate > end) return false;
+      return true;
+    });
+
+    if (filteredForExport.length === 0) {
+      alert("Não há lançamentos no período selecionado para exportar.");
       return;
     }
 
@@ -107,7 +127,7 @@ const MonthlyLaunches: React.FC = () => {
       "Salário Líquido"
     ];
 
-    const rows = launches.map(l => {
+    const rows = filteredForExport.map(l => {
       // Busca a empresa no cadastro do funcionário
       const emp = employees.find(e => e.id === l.employeeId);
       
@@ -150,7 +170,12 @@ const MonthlyLaunches: React.FC = () => {
     const wscols = headers.map(h => ({ wch: h.length + 5 }));
     worksheet['!cols'] = wscols;
 
-    XLSX.writeFile(workbook, `folha_pagamento_rh_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const fileName = exportStartDate && exportEndDate 
+      ? `folha_rh_${exportStartDate}_a_${exportEndDate}.xlsx`
+      : `folha_pagamento_rh_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+    setIsExportModalOpen(false);
   };
 
   const handleEmployeeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -164,7 +189,8 @@ const MonthlyLaunches: React.FC = () => {
         baseSalary: emp.baseSalary,
         functionBonus: emp.functionBonus,
         mealVoucher: emp.defaultMealVoucher || 0,
-        foodVoucher: emp.defaultFoodVoucher || 0
+        foodVoucher: emp.defaultFoodVoucher || 0,
+        basicBasket: emp.defaultBasicBasket || 0
       });
     }
   };
@@ -193,6 +219,16 @@ const MonthlyLaunches: React.FC = () => {
     }
   };
 
+  const filtered = launches.filter(l => {
+    const launchDate = new Date(l.closingDate);
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    
+    if (start && launchDate < start) return false;
+    if (end && launchDate > end) return false;
+    return true;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -201,7 +237,7 @@ const MonthlyLaunches: React.FC = () => {
           <p className="text-slate-400">Processamento de folha e descontos periódicos.</p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
-          <Button variant="secondary" onClick={exportToExcel} disabled={launches.length === 0} className="flex-1 sm:flex-none">
+          <Button variant="secondary" onClick={() => setIsExportModalOpen(true)} className="flex-1 sm:flex-none">
             <Download className="w-4 h-4" />
             Exportar XLSX
           </Button>
@@ -212,16 +248,32 @@ const MonthlyLaunches: React.FC = () => {
         </div>
       </div>
 
+      <Card className="p-4 bg-slate-900/40 border-slate-800">
+        <div className="flex flex-col md:flex-row items-end gap-4">
+          <div className="flex-1 w-full">
+            <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Data Inicial</label>
+            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          </div>
+          <div className="flex-1 w-full">
+            <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Data Final</label>
+            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          </div>
+          <Button variant="secondary" onClick={() => { setStartDate(''); setEndDate(''); }} className="w-full md:w-auto">
+            Limpar Filtros
+          </Button>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
           [1,2].map(i => <div key={i} className="h-20 bg-slate-900 animate-pulse rounded-2xl border border-slate-800" />)
-        ) : launches.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <Card className="py-20 text-center bg-slate-900/20 border-dashed border-slate-800">
             <Calendar className="w-12 h-12 text-slate-800 mx-auto mb-4" />
-            <p className="text-slate-500">Nenhum lançamento registrado no sistema.</p>
+            <p className="text-slate-500">Nenhum lançamento encontrado para o período selecionado.</p>
           </Card>
         ) : (
-          launches.map(l => (
+          filtered.map(l => (
             <Card key={l.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-4 px-6 border-l-4 border-l-indigo-600 hover:bg-slate-900/50 transition-colors">
                <div className="flex items-center gap-4 min-w-[200px]">
                  <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
@@ -363,6 +415,33 @@ const MonthlyLaunches: React.FC = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} title="Exportar Relatório de Folha">
+        <div className="space-y-6">
+          <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl">
+            <p className="text-sm text-slate-400">Selecione o período desejado para gerar o arquivo Excel com todos os lançamentos efetuados.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-slate-500 uppercase font-bold px-1">Data Inicial</label>
+              <Input type="date" value={exportStartDate} onChange={e => setExportStartDate(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-slate-500 uppercase font-bold px-1">Data Final</label>
+              <Input type="date" value={exportEndDate} onChange={e => setExportEndDate(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-slate-800 flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setIsExportModalOpen(false)}>Cancelar</Button>
+            <Button onClick={exportToExcel} className="px-8">
+              <Download className="w-4 h-4" />
+              Gerar Relatório
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
